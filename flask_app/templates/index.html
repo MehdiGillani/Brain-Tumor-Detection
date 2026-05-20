@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 30px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover { border-color: #4299e1; }
+
+        .upload-area input { display: none; }
+
+        .upload-area label {
+            cursor: pointer;
+            color: #4299e1;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .upload-area p {
+            color: #a0aec0;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        #preview {
+            display: none;
+            margin: 15px auto;
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        button:hover { background: #3182ce; }
+        button:disabled { background: #a0aec0; cursor: not-allowed; }
+
+        .result-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .result-box.tumor    { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
+        .result-box.notumor  { background: #f0fff4; color: #276749; border: 1px solid #68d391; }
+
+        .confidence {
+            font-size: 14px;
+            font-weight: normal;
+            margin-top: 6px;
+            color: #718096;
+        }
+
+        .loading {
+            display: none;
+            color: #718096;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🧠 Brain Tumor Detection</h1>
+    <p class="subtitle">Upload an MRI image to detect brain tumor</p>
+
+    <div class="upload-area">
+        <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+        <label for="fileInput">📁 Click to Upload MRI Image</label>
+        <p>Supports JPG, PNG</p>
+    </div>
+
+    <img id="preview" src="" alt="Preview">
+
+    <button onclick="predict()" id="btn" disabled>Analyze MRI</button>
+
+    <div class="loading" id="loading">Analyzing... please wait</div>
+
+    <div class="result-box" id="result">
+        <div id="resultText"></div>
+        <div class="confidence" id="confidenceText"></div>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const preview = document.getElementById("preview");
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+        document.getElementById("btn").disabled = false;
+        document.getElementById("result").style.display = "none";
+    }
+
+    async function predict() {
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        document.getElementById("btn").disabled    = true;
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("result").style.display  = "none";
+
+        try {
+            const response = await fetch("/predict", { method: "POST", body: formData });
+            const data     = await response.json();
+
+            const resultBox  = document.getElementById("result");
+            const resultText = document.getElementById("resultText");
+            const confText   = document.getElementById("confidenceText");
+
+            resultText.textContent = data.prediction;
+            confText.textContent   = "Confidence: " + data.confidence;
+
+            if (data.prediction === "No Tumor") {
+                resultBox.className = "result-box notumor";
+            } else {
+                resultBox.className = "result-box tumor";
+            }
+
+            resultBox.style.display = "block";
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("btn").disabled = false;
+    }
+</script>
+</body>
+</html>

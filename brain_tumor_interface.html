@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brain Tumor Detection — MRI Neural Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1117;
+    --bg3: #161920;
+    --surface: #1c1f28;
+    --surface2: #232731;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --text2: #8a8fa0;
+    --text3: #555a6a;
+    --accent: #4fc3f7;
+    --accent2: #0288d1;
+    --red: #ef5350;
+    --red-dim: rgba(239,83,80,0.12);
+    --green: #66bb6a;
+    --green-dim: rgba(102,187,106,0.12);
+    --amber: #ffa726;
+    --amber-dim: rgba(255,167,38,0.12);
+    --purple: #ce93d8;
+    --purple-dim: rgba(206,147,216,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,195,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,195,247,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo-mark {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0288d1, #4fc3f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .header-text h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .header-text p {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .header-badge {
+    margin-left: auto;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 99px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* MAIN GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 700px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .icon-blue   { background: rgba(79,195,247,0.1); color: var(--accent); }
+  .icon-amber  { background: var(--amber-dim);      color: var(--amber); }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+
+  .card-body { padding: 22px; }
+
+  /* UPLOAD AREA */
+  .upload-area {
+    border: 2px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .upload-area:hover { border-color: var(--accent); background: rgba(79,195,247,0.03); }
+  .upload-area input { display: none; }
+
+  .upload-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    display: block;
+    opacity: 0.6;
+  }
+
+  .upload-label {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    cursor: pointer;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .upload-sub {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* IMAGE PREVIEW */
+  #preview-wrap {
+    display: none;
+    margin-bottom: 20px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border2);
+    position: relative;
+  }
+
+  #preview {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .preview-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text2);
+  }
+
+  /* ANALYZE BUTTON */
+  .btn-analyze {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .btn-analyze:hover   { opacity: 0.9; }
+  .btn-analyze:active  { transform: scale(0.98); }
+  .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* RESULT PANEL */
+  .result-placeholder {
+    background: var(--surface);
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  .result-placeholder svg { display: block; margin: 0 auto 14px; opacity: 0.3; }
+
+  #result-panel { display: none; flex-direction: column; gap: 16px; }
+  #result-panel.visible { display: flex; }
+
+  .result-verdict {
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: all 0.4s ease;
+  }
+
+  .result-verdict.tumor    { background: var(--red-dim);    border-color: rgba(239,83,80,0.3); }
+  .result-verdict.notumor  { background: var(--green-dim);  border-color: rgba(102,187,106,0.3); }
+  .result-verdict.glioma   { background: var(--red-dim);    border-color: rgba(239,83,80,0.3); }
+  .result-verdict.meningioma { background: var(--amber-dim); border-color: rgba(255,167,38,0.3); }
+  .result-verdict.pituitary { background: var(--purple-dim); border-color: rgba(206,147,216,0.3); }
+
+  .verdict-icon   { font-size: 42px; margin-bottom: 10px; display: block; }
+
+  .verdict-label {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+
+  .verdict-label.tumor      { color: var(--red); }
+  .verdict-label.notumor    { color: var(--green); }
+  .verdict-label.glioma     { color: var(--red); }
+  .verdict-label.meningioma { color: var(--amber); }
+  .verdict-label.pituitary  { color: var(--purple); }
+
+  .verdict-sub { font-size: 13px; color: var(--text2); }
+
+  /* CONFIDENCE BAR */
+  .confidence-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+  }
+
+  .conf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+
+  .conf-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .conf-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  .conf-track {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .conf-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .conf-fill.tumor      { background: linear-gradient(90deg, #b71c1c, var(--red)); }
+  .conf-fill.notumor    { background: linear-gradient(90deg, #1b5e20, var(--green)); }
+  .conf-fill.glioma     { background: linear-gradient(90deg, #b71c1c, var(--red)); }
+  .conf-fill.meningioma { background: linear-gradient(90deg, #e65100, var(--amber)); }
+  .conf-fill.pituitary  { background: linear-gradient(90deg, #6a1b9a, var(--purple)); }
+
+  /* DETAIL GRID */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .detail-cell {
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+
+  .detail-key {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 4px;
+  }
+
+  .detail-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* MODEL ROW */
+  .model-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .model-pill {
+    background: rgba(79,195,247,0.1);
+    color: var(--accent);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+  }
+
+  /* SECTION */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text);
+    margin: 40px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* SAMPLE CASES */
+  .batch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .batch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .batch-card:hover { border-color: var(--border2); background: var(--surface2); }
+
+  .batch-card-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .batch-card-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .batch-card-result {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 3px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .batch-card-result.show         { opacity: 1; }
+  .batch-card-result.tumor        { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(239,83,80,0.25); }
+  .batch-card-result.notumor      { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(102,187,106,0.25); }
+  .batch-card-result.meningioma   { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(255,167,38,0.25); }
+  .batch-card-result.pituitary    { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(206,147,216,0.25); }
+
+  /* CLASSES SECTION */
+  .models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .model-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+
+  .model-card-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .model-card-sub  { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  .model-type-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    background: rgba(79,195,247,0.08);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.3px;
+  }
+
+  /* SPINNER */
+  .spinner {
+    width: 22px; height: 22px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* FLASK NOTE */
+  .flask-note {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .flask-note span { color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="logo-mark">
+      <svg width="26" height="26" fill="none" viewBox="0 0 26 26">
+        <circle cx="13" cy="13" r="10" stroke="white" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="13" cy="13" r="5" stroke="white" stroke-width="1.5"/>
+        <path d="M13 3 L13 8 M13 18 L13 23 M3 13 L8 13 M18 13 L23 13" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>Brain Tumor MRI Scanner</h1>
+      <p>Deep learning detection · VGG16 · 4 tumor classes</p>
+    </div>
+    <div class="header-badge">
+      <span class="pulse"></span>
+      MODEL READY
+    </div>
+  </header>
+
+  <div class="flask-note">
+    ⚡ <span>Note:</span> Make sure your Flask app is running at http://127.0.0.1:5000 before uploading an image.
+  </div>
+
+  <div class="main-grid">
+
+    <!-- LEFT: UPLOAD -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon icon-blue">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <span class="card-title">Upload MRI Image</span>
+      </div>
+      <div class="card-body">
+
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+          <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)" />
+          <span class="upload-icon">🧠</span>
+          <span class="upload-label">Click to Upload MRI Image</span>
+          <span class="upload-sub">Supports JPG, PNG · 128×128 input</span>
+        </div>
+
+        <div id="preview-wrap">
+          <img id="preview" src="" alt="MRI Preview" />
+          <span class="preview-badge" id="preview-name">image.jpg</span>
+        </div>
+
+        <button class="btn-analyze" id="btn" onclick="analyze()" disabled>
+          <span id="btn-text">Analyze MRI Scan</span>
+          <div class="spinner" id="btn-spinner"></div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULT -->
+    <div>
+      <div id="result-placeholder" class="result-placeholder">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4l3 3"/>
+        </svg>
+        Upload an MRI scan and click<br/>
+        <strong style="color:var(--text2)">Analyze MRI Scan</strong> to see the result.
+      </div>
+
+      <div id="result-panel">
+
+        <div id="verdict-box" class="result-verdict">
+          <span class="verdict-icon" id="verdict-icon">—</span>
+          <div class="verdict-label" id="verdict-label">—</div>
+          <div class="verdict-sub"   id="verdict-sub">—</div>
+        </div>
+
+        <div class="confidence-wrap">
+          <div class="conf-header">
+            <span class="conf-label">Confidence Score</span>
+            <span class="conf-value" id="conf-pct">—</span>
+          </div>
+          <div class="conf-track">
+            <div class="conf-fill" id="conf-bar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="detail-grid" id="detail-grid"></div>
+
+        <div class="model-row">
+          <span style="color:var(--text3); font-size:12px; font-family:'DM Mono',monospace">MODEL</span>
+          <span class="model-pill">VGG16 Transfer Learning</span>
+          <span style="margin-left:auto; font-size:11px; font-family:'DM Mono',monospace; color:var(--text3)">TensorFlow · Keras</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TUMOR CLASSES -->
+  <div class="section-title">Tumor classes detected</div>
+  <div class="models-grid" id="classes-grid"></div>
+
+  <!-- SAMPLE TEST CASES -->
+  <div class="section-title">What each result means</div>
+  <div class="batch-grid" id="info-grid"></div>
+
+</div>
+
+<script>
+const CLASS_INFO = [
+  { key: 'glioma',      name: 'Glioma',      sub: 'Most common brain tumor', type: 'Malignant' },
+  { key: 'meningioma',  name: 'Meningioma',  sub: 'Grows from meninges',     type: 'Usually Benign' },
+  { key: 'notumor',     name: 'No Tumor',    sub: 'Healthy brain scan',      type: 'Normal' },
+  { key: 'pituitary',   name: 'Pituitary',   sub: 'Near pituitary gland',    type: 'Benign/Malignant' },
+];
+
+const INFO_CARDS = [
+  { type: 'GLIOMA',     label: 'Fast-growing tumor in glial cells. Requires immediate attention.',        cls: 'tumor' },
+  { type: 'MENINGIOMA', label: 'Slow-growing tumor. Usually benign but monitoring needed.',               cls: 'meningioma' },
+  { type: 'PITUITARY',  label: 'Affects hormones and vision. Treatment depends on size.',                  cls: 'pituitary' },
+  { type: 'NO TUMOR',   label: 'No abnormality detected. Brain scan appears normal.',                     cls: 'notumor' },
+];
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('preview');
+  const wrap    = document.getElementById('preview-wrap');
+  preview.src   = URL.createObjectURL(file);
+  wrap.style.display = 'block';
+  document.getElementById('preview-name').textContent = file.name;
+  document.getElementById('btn').disabled = false;
+  document.getElementById('result-panel').classList.remove('visible');
+  document.getElementById('result-placeholder').style.display = 'block';
+}
+
+async function analyze() {
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return;
+
+  const btn     = document.getElementById('btn');
+  const btnText = document.getElementById('btn-text');
+  const spinner = document.getElementById('btn-spinner');
+
+  btnText.style.display = 'none';
+  spinner.style.display = 'block';
+  btn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('http://127.0.0.1:5000/predict', { method: 'POST', body: formData });
+    const data     = await response.json();
+
+    if (data.error) { alert('Error: ' + data.error); return; }
+
+    showResult(data.prediction, data.confidence, file.name);
+  } catch (err) {
+    alert('Cannot connect to Flask app.\nMake sure app.py is running at http://127.0.0.1:5000');
+  }
+
+  btnText.style.display = 'block';
+  spinner.style.display = 'none';
+  btn.disabled = false;
+}
+
+function showResult(prediction, confidence, filename) {
+  document.getElementById('result-placeholder').style.display = 'none';
+  const panel = document.getElementById('result-panel');
+  panel.classList.add('visible');
+
+  // Determine class key
+  let classKey = 'tumor';
+  let icon     = '⚠';
+  let subText  = '';
+
+  if (prediction === 'No Tumor') {
+    classKey = 'notumor'; icon = '✓';
+    subText  = 'No abnormality detected in this MRI scan';
+  } else if (prediction.includes('glioma')) {
+    classKey = 'glioma'; icon = '⚠';
+    subText  = 'Glioma detected — consult a neurologist immediately';
+  } else if (prediction.includes('meningioma')) {
+    classKey = 'meningioma'; icon = '⚡';
+    subText  = 'Meningioma detected — monitoring recommended';
+  } else if (prediction.includes('pituitary')) {
+    classKey = 'pituitary'; icon = '🔬';
+    subText  = 'Pituitary tumor detected — endocrinology review advised';
+  }
+
+  // Verdict box
+  const vbox = document.getElementById('verdict-box');
+  vbox.className = 'result-verdict ' + classKey;
+  document.getElementById('verdict-icon').textContent = icon;
+  const vl = document.getElementById('verdict-label');
+  vl.textContent = prediction;
+  vl.className = 'verdict-label ' + classKey;
+  document.getElementById('verdict-sub').textContent = subText;
+
+  // Confidence bar
+  const pct = parseFloat(confidence);
+  document.getElementById('conf-pct').textContent = confidence;
+  const bar = document.getElementById('conf-bar');
+  bar.style.width = '0%';
+  bar.className = 'conf-fill ' + classKey;
+  setTimeout(() => { bar.style.width = pct + '%'; }, 50);
+
+  // Details
+  document.getElementById('detail-grid').innerHTML = `
+    <div class="detail-cell">
+      <div class="detail-key">File Name</div>
+      <div class="detail-val">${filename}</div>
+    </div>
+    <div class="detail-cell">
+      <div class="detail-key">Prediction</div>
+      <div class="detail-val">${prediction}</div>
+    </div>
+    <div class="detail-cell">
+      <div class="detail-key">Confidence</div>
+      <div class="detail-val">${confidence}</div>
+    </div>
+    <div class="detail-cell">
+      <div class="detail-key">Input Size</div>
+      <div class="detail-val">128 × 128 px</div>
+    </div>
+  `;
+}
+
+// Build class cards
+(function buildClasses() {
+  const grid = document.getElementById('classes-grid');
+  CLASS_INFO.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'model-card';
+    div.innerHTML = `
+      <div class="model-card-name">${c.name}</div>
+      <div class="model-card-sub">${c.sub}</div>
+      <span class="model-type-badge">${c.type}</span>
+    `;
+    grid.appendChild(div);
+  });
+})();
+
+// Build info cards
+(function buildInfo() {
+  const grid = document.getElementById('info-grid');
+  INFO_CARDS.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'batch-card';
+    div.innerHTML = `
+      <div class="batch-card-type">${c.type}</div>
+      <div class="batch-card-label">${c.label}</div>
+      <span class="batch-card-result show ${c.cls}">${c.type === 'NO TUMOR' ? 'NORMAL' : 'TUMOR'}</span>
+    `;
+    grid.appendChild(div);
+  });
+})();
+</script>
+</body>
+</html>

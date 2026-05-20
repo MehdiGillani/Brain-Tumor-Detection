@@ -1,0 +1,29 @@
+# Model file (too large for GitHub)
+*.h5
+*.pkl
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Uploaded images
+flask_app/uploads/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Environment
+.env
+venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dataset (download from Kaggle)
+Training/
+Testing/
+*.zip
