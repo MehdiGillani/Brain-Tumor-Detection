@@ -117,7 +117,7 @@ The last 4 layers of VGG16 are unfrozen. The entire model is retrained at a much
 | Phase 2 Learning Rate | 0.00001 |
 | Loss Function | Sparse Categorical Cross-Entropy |
 | Batch Size | 32 |
-| Max Epochs | 10 |
+| Max Epochs | 20 |
 | Early Stopping Patience | 3 |
 
 ### Step 5 — Anti-Overfitting Techniques
