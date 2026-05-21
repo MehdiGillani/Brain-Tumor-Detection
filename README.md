@@ -224,9 +224,8 @@ Open `brain_tumor_interface.html` in your browser. The app connects to Flask at 
 
 ## Author
 
-**Name:** Syed Istaqbal Mehdi Gillani  
-**Registration:** 23108368  
-**Program:** BS Artificial Intelligence — 5B  
+**Name:** Syed Istaqbal Mehdi Gillani   
+**Program:** BS Artificial Intelligence
 **University:** SZABIST Islamabad  
 **Department:** Robotics and Artificial Intelligence  
 
