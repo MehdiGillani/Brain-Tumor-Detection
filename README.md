@@ -1,47 +1,44 @@
-# 🧠 Brain Tumor Detection Using Deep Learning (VGG16)
+# Brain Tumor Detection Using Deep Learning
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange?style=flat-square&logo=tensorflow)
+![Keras](https://img.shields.io/badge/Keras-VGG16-red?style=flat-square&logo=keras)
 ![Flask](https://img.shields.io/badge/Flask-2.x-black?style=flat-square&logo=flask)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Complete-brightgreen?style=flat-square)
 
-A deep learning project that detects brain tumors from MRI images using **Transfer Learning with VGG16**. The model classifies MRI scans into **4 categories** and is deployed as a **Flask web application** with a professional dark-themed UI.
-
----
-
-## 📸 Demo
-
-> Upload any MRI image → Get instant tumor classification with confidence score
-
-| No Tumor | Glioma | Meningioma | Pituitary |
-|---|---|---|---|
-| ✅ Normal scan | ⚠️ Malignant | ⚡ Usually benign | 🔬 Near pituitary gland |
+A deep learning project that detects brain tumors from MRI images using Transfer Learning with VGG16. The model classifies MRI scans into four categories and is deployed as a Flask web application with a professional dark-themed interface.
 
 ---
 
-## 📁 Project Structure
+## Table of Contents
 
-```
-BrainTumorDetection/
-│
-├── brain_tumor_colab.ipynb        ← Full training notebook (run on Google Colab)
-├── brain_tumor_interface.html     ← Standalone web interface
-├── README.md                      ← You are here
-│
-└── flask_app/
-    ├── app.py                     ← Flask backend
-    ├── brain_tumor_model.h5       ← Trained model (download separately)
-    └── templates/
-        └── index.html             ← Flask HTML template
-```
+- [Overview](#overview)
+- [Dataset](#dataset)
+- [Model Architecture](#model-architecture)
+- [How It Works](#how-it-works)
+- [Results](#results)
+- [Project Structure](#project-structure)
+- [How to Run](#how-to-run)
+- [Technologies Used](#technologies-used)
+- [Author](#author)
+- [Disclaimer](#disclaimer)
 
 ---
 
-## 📊 Dataset
+## Overview
 
-**Dataset used:** Brain Tumor MRI Dataset by Masoud Nickparvar
+Brain tumors are one of the most serious and life-threatening medical conditions. Early and accurate detection is critical for effective treatment. Traditional diagnosis relies on manual analysis of MRI scans by radiologists, which is time-consuming and prone to human error.
 
-🔗 [Download from Kaggle](https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset)
+This project automates the detection process using a Convolutional Neural Network based on the VGG16 architecture pretrained on ImageNet. The model is trained to classify brain MRI images into four categories with high accuracy.
+
+---
+
+## Dataset
+
+**Dataset:** Brain Tumor MRI Dataset by Masoud Nickparvar
+
+**Download:** https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset
 
 | Class | Training Images | Testing Images |
 |---|---|---|
@@ -51,174 +48,196 @@ BrainTumorDetection/
 | Pituitary | 1,457 | 300 |
 | **Total** | **5,712** | **1,311** |
 
----
-
-## 🏗️ Model Architecture
-
-```
-Input (128×128×3)
-        ↓
-   VGG16 Base (pretrained on ImageNet — frozen)
-        ↓
-   GlobalAveragePooling2D
-        ↓
-   BatchNormalization
-        ↓
-   Dense(512) + ReLU + Dropout(0.5)      ← Hidden Layer 1
-        ↓
-   Dense(256) + ReLU + Dropout(0.4)      ← Hidden Layer 2
-        ↓
-   Dense(128) + ReLU + Dropout(0.3)      ← Hidden Layer 3
-        ↓
-   Dense(4) + Softmax                    ← Output Layer
-```
-
-### Why VGG16?
-- Pretrained on **14 million ImageNet images**
-- Extracts powerful feature representations out of the box
-- Much higher accuracy than training a CNN from scratch
-- Reduces training time significantly
+The dataset contains MRI brain scan images in JPG and PNG format, divided into Training and Testing folders with four class subfolders each.
 
 ---
 
-## ⚙️ How It Works
+## Model Architecture
 
-### 1. Data Preprocessing
-- Images resized to **128×128 pixels**
-- Pixel values normalized using **StandardScaler**
-- Labels encoded using **LabelEncoder**
-- Dataset split: **80% train / 20% validation**
+```
+Input Layer        (128 x 128 x 3)
+       |
+VGG16 Base         Pretrained on ImageNet — all layers frozen
+       |
+GlobalAveragePooling2D
+       |
+BatchNormalization
+       |
+Dense(512) + ReLU + Dropout(0.5)      Hidden Layer 1
+       |
+Dense(256) + ReLU + Dropout(0.4)      Hidden Layer 2
+       |
+Dense(128) + ReLU + Dropout(0.3)      Hidden Layer 3
+       |
+Dense(4)   + Softmax                  Output Layer
+```
 
-### 2. Data Augmentation
-To prevent overfitting, these augmentations are applied during training:
-- Random rotation (±20°)
-- Horizontal flip
-- Brightness adjustment (0.8–1.2)
-- Zoom (±20%)
+### Why VGG16
 
-### 3. Transfer Learning (2-Phase Training)
-- **Phase 1:** VGG16 base frozen → only top layers train
-- **Phase 2:** Last 4 VGG16 layers unfrozen → fine-tuning with lower learning rate (0.00001)
+VGG16 is a deep convolutional neural network pretrained on over 14 million ImageNet images. By using transfer learning, the model starts with powerful feature extraction capabilities already built in. This results in significantly higher accuracy compared to training a CNN from scratch, especially with a limited medical dataset.
 
-### 4. Training Configuration
+---
+
+## How It Works
+
+### Step 1 — Data Preprocessing
+
+- Images resized to 128 x 128 pixels using OpenCV
+- Pixel values normalized using StandardScaler (zero mean, unit variance)
+- Labels encoded using LabelEncoder
+- Dataset split: 80% training / 20% validation
+
+### Step 2 — Data Augmentation
+
+Augmentation is applied during training to prevent overfitting and improve generalization:
+
+| Technique | Value |
+|---|---|
+| Rotation | +/- 20 degrees |
+| Horizontal Flip | Enabled |
+| Brightness | 0.8 to 1.2 |
+| Zoom | +/- 20% |
+| Width Shift | 15% |
+| Height Shift | 15% |
+
+### Step 3 — Transfer Learning (Two Phase Training)
+
+**Phase 1 — Feature Learning**
+The VGG16 base is fully frozen. Only the newly added dense layers are trained. The model learns to classify tumor types using the features extracted by VGG16.
+
+**Phase 2 — Fine Tuning**
+The last 4 layers of VGG16 are unfrozen. The entire model is retrained at a much lower learning rate (0.00001) to fine-tune the pretrained weights for MRI-specific features.
+
+### Step 4 — Training Configuration
+
 | Parameter | Value |
 |---|---|
 | Optimizer | Adam |
-| Learning Rate | 0.0001 |
+| Phase 1 Learning Rate | 0.0001 |
+| Phase 2 Learning Rate | 0.00001 |
 | Loss Function | Sparse Categorical Cross-Entropy |
 | Batch Size | 32 |
-| Epochs | 10 (EarlyStopping applied) |
+| Max Epochs | 10 |
+| Early Stopping Patience | 3 |
 
-### 5. Anti-Overfitting Techniques
-- Dropout layers (0.5, 0.4, 0.3)
-- L2 Regularization (0.001)
-- Data Augmentation
-- EarlyStopping (patience=3)
-- ReduceLROnPlateau (factor=0.5)
+### Step 5 — Anti-Overfitting Techniques
+
+| Technique | Purpose |
+|---|---|
+| Dropout (0.5, 0.4, 0.3) | Randomly disables neurons during training |
+| L2 Regularization (0.001) | Penalizes large weights |
+| Data Augmentation | Increases training variety |
+| EarlyStopping | Stops when validation loss stops improving |
+| ReduceLROnPlateau | Reduces learning rate when model plateaus |
 
 ---
 
-## 📈 Results
+## Results
 
 | Metric | Score |
 |---|---|
-| Test Accuracy | ~90–95% |
-| Loss | < 0.3 |
+| Test Accuracy | 90% - 95% |
+| Test Loss | Less than 0.3 |
 
-Evaluation includes:
-- Classification Report (Precision, Recall, F1-Score)
+Evaluation outputs include:
+- Classification Report (Precision, Recall, F1-Score per class)
 - Confusion Matrix
-- Accuracy & Loss curves
+- Training and Validation Accuracy curves
+- Training and Validation Loss curves
 
 ---
 
-## 🚀 How to Run
+## Project Structure
 
-### Option 1 — Google Colab (Recommended)
-1. Open `brain_tumor_colab.ipynb` in [Google Colab](https://colab.research.google.com)
-2. Set runtime to **T4 GPU**: `Runtime → Change Runtime Type → T4 GPU`
-3. Upload `archive.zip` dataset to Google Drive
-4. Run all cells top to bottom
-
-### Option 2 — Flask Web App (Local)
-
-**Step 1 — Install dependencies**
-```bash
-pip install flask flask-cors tensorflow pillow numpy
+```
+Brain-Tumor-Detection/
+|
+|-- brain_tumor_colab.ipynb       Full training notebook (Google Colab)
+|-- brain_tumor_interface.html    Standalone web interface
+|-- requirements.txt              Python dependencies
+|-- README.md                     Project documentation
+|
+|-- flask_app/
+    |-- app.py                    Flask backend server
+    |-- brain_tumor_model.h5      Trained model (train and add manually)
+    |-- templates/
+        |-- index.html            Flask HTML template
 ```
 
-**Step 2 — Place your trained model**
+---
+
+## How to Run
+
+### Option 1 — Google Colab (Recommended for Training)
+
+1. Open `brain_tumor_colab.ipynb` in Google Colab
+2. Set runtime to T4 GPU: Runtime > Change Runtime Type > T4 GPU
+3. Upload dataset zip to Google Drive
+4. Run all cells top to bottom
+5. Download the saved `brain_tumor_model.h5` from Google Drive
+
+### Option 2 — Flask Web App (Local Deployment)
+
+**Install dependencies**
+
+```bash
+pip install flask flask-cors tensorflow pillow numpy scikit-learn
+```
+
+**Place the trained model**
+
 ```
 flask_app/
-└── brain_tumor_model.h5   ← put your trained model here
+|-- app.py
+|-- brain_tumor_model.h5    <- place your trained model here
 ```
 
-**Step 3 — Run Flask**
+**Run Flask**
+
 ```bash
 cd flask_app
 python app.py
 ```
 
-**Step 4 — Open the interface**
+**Open the interface**
 
-Open `brain_tumor_interface.html` in your browser — the app is ready!
+Open `brain_tumor_interface.html` in your browser. The app connects to Flask at http://127.0.0.1:5000 automatically.
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
-| Tool | Purpose |
+| Technology | Purpose |
 |---|---|
-| Python 3.8+ | Core language |
-| TensorFlow / Keras | Model building & training |
+| Python 3.8+ | Core programming language |
+| TensorFlow / Keras | Model building and training |
 | VGG16 | Transfer learning backbone |
-| OpenCV | Image loading & preprocessing |
+| OpenCV | Image loading and preprocessing |
 | Scikit-learn | LabelEncoder, StandardScaler, metrics |
-| Flask | Web backend |
-| Flask-CORS | Cross-origin requests |
-| HTML / CSS / JS | Frontend interface |
+| Flask | Web backend server |
+| Flask-CORS | Cross-origin request handling |
+| HTML / CSS / JavaScript | Frontend web interface |
 | Google Colab | GPU training environment |
-| Matplotlib / Seaborn | Visualization |
+| Matplotlib / Seaborn | Training visualization |
 
 ---
 
-## 📋 Requirements
+## Author
 
-```
-tensorflow
-flask
-flask-cors
-pillow
-numpy
-scikit-learn
-matplotlib
-seaborn
-opencv-python
-```
-
-Install all:
-```bash
-pip install tensorflow flask flask-cors pillow numpy scikit-learn matplotlib seaborn opencv-python
-```
+**Name:** Syed Istaqbal Mehdi Gillani  
+**Registration:** 23108368  
+**Program:** BS Artificial Intelligence — 5B  
+**University:** SZABIST Islamabad  
+**Department:** Robotics and Artificial Intelligence  
 
 ---
 
-## 👤 Author
+## Disclaimer
 
-**Syed Istaqbal Mehdi Gillani**
-Reg. No: 23108368
-BS Artificial Intelligence — 5B
-SZABIST Islamabad
-Department of Robotics & Artificial Intelligence
+This project is for educational purposes only. It is not a substitute for professional medical diagnosis. Always consult a qualified medical professional for any health concerns related to brain tumors or any other medical condition.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
-
----
-
-## ⚠️ Disclaimer
-
-This project is for **educational purposes only**. It is not a substitute for professional medical diagnosis. Always consult a qualified medical professional for any health concerns.
