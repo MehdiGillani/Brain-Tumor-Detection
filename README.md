@@ -136,8 +136,10 @@ The last 4 layers of VGG16 are unfrozen. The entire model is retrained at a much
 
 | Metric | Score |
 |---|---|
-| Test Accuracy | 90% - 95% |
-| Test Loss | Less than 0.3 |
+| Train Accuracy | 96.92% |
+| Validation Accuracy | 95.80% |
+| Test Accuracy | 89.44% |
+| Test Loss | 0.966 |
 
 Evaluation outputs include:
 - Classification Report (Precision, Recall, F1-Score per class)
