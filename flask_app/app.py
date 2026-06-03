@@ -1,3 +1,4 @@
+tensorflow-cpu==2.15.0
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import numpy as np
